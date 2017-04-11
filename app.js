@@ -50,24 +50,16 @@ function drawText(c2, snapshot, response) {
               var p = c2.getImageData(rect.vertices[0].x, rect.vertices[0].y, 1, 1).data;
               var hex = "#" + ("000000" + rgbToHex(p[0], p[1], p[2])).slice(-6);
 
-              var textH = rect.vertices[2].y - rect.vertices[0].y;
-              var textW = rect.vertices[1].x - rect.vertices[0].x;
-              var angle = Math.atan2((rect.vertices[1].y-rect.vertices[0].y),(rect.vertices[1].x-rect.vertices[0].x));// * 180 / Math.PI;
-              c2.save();
-              c2.translate(rect.vertices[0].x + textW/2, rect.vertices[0].y+textH/2);
-              c2.rotate(angle);
-
               c2.fillStyle = hex;
               c2.beginPath();
 
-              c2.moveTo(-textW/2,-textH/2);
-              c2.lineTo(textW/2, -textH/2);
-              c2.lineTo(textW/2, textH/2);
-              c2.lineTo(-textW/2, textH/2);
+              c2.moveTo(rect.vertices[0].x, rect.vertices[0].y);
+              c2.lineTo(rect.vertices[1].x, rect.vertices[1].y);
+              c2.lineTo(rect.vertices[2].x, rect.vertices[2].y);
+              c2.lineTo(rect.vertices[3].x, rect.vertices[3].y);
               c2.closePath();
               c2.fill();
 
-              c2.restore();
             }
           }
         }
@@ -78,12 +70,14 @@ function drawText(c2, snapshot, response) {
   // add new text at word level to keep same size for letters
   var font = $("select#font option:selected").text();
   var simpleAnno = response['textAnnotations'];
-  if(simpleAnno && simpleAnno.length) {
+  if (simpleAnno && simpleAnno.length) {
     for(var i=1; i < simpleAnno.length; i++) {
       var rect = simpleAnno[i].boundingPoly;
       var text = simpleAnno[i].description;
-      var textH = rect.vertices[2].y - rect.vertices[0].y;
-      var textW = rect.vertices[1].x - rect.vertices[0].x;
+      var textH = Math.sqrt((rect.vertices[3].x-rect.vertices[0].x) * (rect.vertices[3].x-rect.vertices[0].x) +
+          (rect.vertices[3].y-rect.vertices[0].y)*(rect.vertices[3].y-rect.vertices[0].y));
+      var textW = Math.sqrt((rect.vertices[3].x-rect.vertices[2].x) * (rect.vertices[3].x-rect.vertices[2].x) +
+          (rect.vertices[3].y-rect.vertices[2].y)*(rect.vertices[3].y-rect.vertices[2].y));
       var angle = Math.atan2((rect.vertices[1].y-rect.vertices[0].y),(rect.vertices[1].x-rect.vertices[0].x));// * 180 / Math.PI;
 
       var fontsize = 200;
@@ -91,16 +85,14 @@ function drawText(c2, snapshot, response) {
         fontsize--;
         c2.font = fontsize + 'px ' + font;
       } while (c2.measureText(text).width > textW)
-      //console.log(text +' '+ fontsize);
 
       c2.save();
-      c2.translate(rect.vertices[0].x + textW/2, rect.vertices[0].y+textH/2);
+      c2.translate(rect.vertices[0].x, rect.vertices[0].y);
       c2.rotate(angle);
-
+      console.log(text, angle, textH, textW);
       c2.fillStyle = $('select#color option:selected').val();//"#fff";
       c2.font = fontsize + 'px ' + font;
-      c2.fillText(text, -textW/2, textH/2);
-
+      c2.fillText(text, 0, textH);
       c2.restore();
     }
   }
@@ -120,17 +112,7 @@ window.addEventListener("DOMContentLoaded", function() {
     var context = canvas.getContext("2d")
 
     if (hasGetUserMedia()) {
-      var constraints = {
-        video: {
-          mandatory: {
-            maxWidth: 640,
-            maxHeight: 360
-          }
-        },
-        audio: false
-      };
       navigator.getUserMedia({video:true, audio:false}, function(localMediaStream) {
-      //navigator.getUserMedia(constraints, function(localMediaStream) {
           var video = document.querySelector('video');
           video.src = window.URL.createObjectURL(localMediaStream);
 
