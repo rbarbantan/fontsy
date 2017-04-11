@@ -2,6 +2,11 @@
 
 var API_URL = 'https://vision.googleapis.com/v1/images:annotate?key=' + window.apiKey;
 
+navigator.getUserMedia = ( navigator.getUserMedia ||
+                       navigator.webkitGetUserMedia ||
+                       navigator.mozGetUserMedia ||
+                       navigator.msGetUserMedia);
+                       
 //var response;
 function rgbToHex(r, g, b) {
     if (r > 255 || g > 255 || b > 255)
