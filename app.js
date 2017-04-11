@@ -6,7 +6,7 @@ navigator.getUserMedia = ( navigator.getUserMedia ||
                        navigator.webkitGetUserMedia ||
                        navigator.mozGetUserMedia ||
                        navigator.msGetUserMedia);
-                       
+
 //var response;
 function rgbToHex(r, g, b) {
     if (r > 255 || g > 255 || b > 255)
@@ -108,7 +108,6 @@ function drawText(c2, snapshot, response) {
 
 // Put event listeners into place
 window.addEventListener("DOMContentLoaded", function() {
-    console.log("content loaded");
 
     var videoWidth, videoHeight;
     $("#buttons").hide();
@@ -139,9 +138,9 @@ window.addEventListener("DOMContentLoaded", function() {
           // See crbug.com/110938.
           video.onloadedmetadata = function(e) {
             // Ready to go. Do some stuff.
-            console.log(e);
             videoWidth = this.videoWidth;
             videoHeight = this.videoHeight;
+            $('canvas').width(videoWidth).height(videoHeight)
             $('#snap').show();
           };
         }, errorCallback);
@@ -182,7 +181,6 @@ window.addEventListener("DOMContentLoaded", function() {
         }).fail(function (jqXHR, textStatus, errorThrown) {
           console.log('ERRORS: ' + textStatus + ' ' + errorThrown);
         }).done(function(msg) {
-          console.log(msg);
 
           var response = msg.responses[0];
           var c2 = canvas.getContext("2d");
