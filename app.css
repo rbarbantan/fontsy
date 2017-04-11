@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css?family=Lobster|Audiowide|Permanent+Marker|Bangers|Barrio|Bungee+Shade|Crafty+Girls|Dancing+Script|Fascinate+Inline|Fontdiner+Swanky|Frijole|Grand+Hotel|Indie+Flower|Knewave|Kranky|Monoton|Nothing+You+Could+Do|Orbitron|Pacifico|Poiret+One|Reenie+Beanie|Rock+Salt|Sacramento|Slackey|Special+Elite|Syncopate');
+
+body {
+  color: white;
+}
+video, canvas {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  z-index: -100;
+  -ms-transform: translateX(-50%) translateY(-50%);
+  -moz-transform: translateX(-50%) translateY(-50%);
+  -webkit-transform: translateX(-50%) translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
+  background-size: cover;
+}
+
+#intro {
+  position: fixed;
+  width: 100%;
+  top: 45%;
+  text-align: center;
+  transform: translateY(-50%);
+  color: white;
+}
+
+#snap {
+  display: none;
+  position: fixed;
+  width: 10vmin;
+  height: 10vmin;
+  background-color: gray;
+  border-radius: 100%;
+  top: 80%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1px solid #fff;
+  cursor: pointer;
+}
+
+#buttons {
+  position: fixed;
+  width: 100%;
+  top: 80%;
+  left: 50%;
+  transform: translateX(-25%);
+}
+
+.button {
+    background-color: black;
+    border: 1px solid white;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+}
