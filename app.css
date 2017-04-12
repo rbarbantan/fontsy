@@ -28,6 +28,16 @@ video, canvas {
   color: white;
 }
 
+#switch {
+  display: none;
+  position: fixed;
+  width: 20vmin;
+  height: 20vmin;
+  top: 80%;
+  left: 80%;
+  transform: translateX(-50%);
+  cursor: pointer;
+}
 #snap {
   display: none;
   position: fixed;
@@ -63,7 +73,7 @@ video, canvas {
 }
 
 @media screen and (min-width: 768px) {
-  #snap {
+  #snap, #switch {
     width: 10vmin;
     height: 10vmin;
   }

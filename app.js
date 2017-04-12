@@ -6,8 +6,8 @@ navigator.getUserMedia = ( navigator.getUserMedia ||
                        navigator.webkitGetUserMedia ||
                        navigator.mozGetUserMedia ||
                        navigator.msGetUserMedia);
+var videoWidth, videoHeight;
 
-//var response;
 function rgbToHex(r, g, b) {
     if (r > 255 || g > 255 || b > 255)
         throw "Invalid color component";
@@ -35,6 +35,7 @@ function loadSnapshot(context, snapshot) {
    context.putImageData(snapshot, 0, 0);
 }
 
+/** draws the recognized text over the original image captured from camera **/
 function drawText(c2, snapshot, response) {
   loadSnapshot(c2, snapshot)
 
@@ -52,11 +53,11 @@ function drawText(c2, snapshot, response) {
 
               c2.fillStyle = hex;
               c2.beginPath();
-
-              c2.moveTo(rect.vertices[0].x, rect.vertices[0].y);
-              c2.lineTo(rect.vertices[1].x, rect.vertices[1].y);
-              c2.lineTo(rect.vertices[2].x, rect.vertices[2].y);
-              c2.lineTo(rect.vertices[3].x, rect.vertices[3].y);
+              var pad = 5;
+              c2.moveTo(rect.vertices[0].x-pad, rect.vertices[0].y-pad);
+              c2.lineTo(rect.vertices[1].x+pad, rect.vertices[1].y-pad);
+              c2.lineTo(rect.vertices[2].x+pad, rect.vertices[2].y+pad);
+              c2.lineTo(rect.vertices[3].x-pad, rect.vertices[3].y+pad);
               c2.closePath();
               c2.fill();
 
@@ -89,8 +90,7 @@ function drawText(c2, snapshot, response) {
       c2.save();
       c2.translate(rect.vertices[0].x, rect.vertices[0].y);
       c2.rotate(angle);
-      console.log(text, angle, textH, textW);
-      c2.fillStyle = $('select#color option:selected').val();//"#fff";
+      c2.fillStyle = $('select#color option:selected').val();
       c2.font = fontsize + 'px ' + font;
       c2.fillText(text, 0, textH);
       c2.restore();
@@ -98,12 +98,28 @@ function drawText(c2, snapshot, response) {
   }
 }
 
+/* open video stream from specified device id */
+function getVideo(cameraId) {
+  navigator.getUserMedia({video:{ deviceId: cameraId }, audio:false}, function(localMediaStream) {
+      var video = document.querySelector('video');
+      video.src = window.URL.createObjectURL(localMediaStream);
+
+      // Note: onloadedmetadata doesn't fire in Chrome when using it with getUserMedia.
+      // See crbug.com/110938.
+      video.onloadedmetadata = function(e) {
+        // Ready to go. Do some stuff.
+        videoWidth = this.videoWidth;
+        videoHeight = this.videoHeight;
+        $('canvas').width(videoWidth).height(videoHeight)
+        $('#snap').show();
+      };
+    }, errorCallback);
+}
+
 // Put event listeners into place
 window.addEventListener("DOMContentLoaded", function() {
 
-    var videoWidth, videoHeight;
     $("#buttons").hide();
-
 
     var canvas = document.getElementById('canvas')
     canvas.width = 640;
@@ -112,22 +128,34 @@ window.addEventListener("DOMContentLoaded", function() {
     var context = canvas.getContext("2d")
 
     if (hasGetUserMedia()) {
-      navigator.getUserMedia({video:true, audio:false}, function(localMediaStream) {
-          var video = document.querySelector('video');
-          video.src = window.URL.createObjectURL(localMediaStream);
+      navigator.mediaDevices.enumerateDevices()
+        .then(function(devices) {
 
-          // Note: onloadedmetadata doesn't fire in Chrome when using it with getUserMedia.
-          // See crbug.com/110938.
-          video.onloadedmetadata = function(e) {
-            // Ready to go. Do some stuff.
-            videoWidth = this.videoWidth;
-            videoHeight = this.videoHeight;
-            $('canvas').width(videoWidth).height(videoHeight)
-            $('#snap').show();
-          };
-        }, errorCallback);
+          var videoDevices = devices.filter(function (device){
+            return device.kind === 'videoinput'
+          });
+          var currentDeviceId = videoDevices[0].deviceId
+          getVideo(currentDeviceId);
+
+          // if there are two cameras (front and back) allow switching between them
+          if (videoDevices.length == 2) {
+            $('#switch').show();
+            $('#switch').click(function() {
+              if (videoDevices[0].deviceId === currentDeviceId) {
+                currentDeviceId = videoDevices[1].deviceId;
+              } else {
+                currentDeviceId = videoDevices[0].deviceId;
+              }
+              getVideo(currentDeviceId);
+            });
+          }
+        })
+        .catch(function(err) {
+          console.log(err.name + ": " + err.message);
+        });
 
     } else {
+      // I'm looking at you, Apple!
       alert('getUserMedia() is not supported in your browser');
     }
 
@@ -173,6 +201,7 @@ window.addEventListener("DOMContentLoaded", function() {
           $("#buttons").show();
           $("#intro").hide();
           $("#snap").hide();
+          $('#switch').hide();
           $("#save").click(function() {
             var dt = canvas.toDataURL('image/png');
             this.href = dt.replace(/^data:image\/[^;]/, 'data:application/octet-stream');
@@ -189,6 +218,7 @@ window.addEventListener("DOMContentLoaded", function() {
       $("#canvas").hide();
       $("intro").show();
       $("#snap").show();
+      $("#switch").show();
       $("#buttons").hide();
 
     });
